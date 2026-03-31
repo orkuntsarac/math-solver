@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from openai import OpenAI
 import os
@@ -7,6 +8,15 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = FastAPI()
+
+# Flutter'dan (veya ileride webden) gelecek isteklere tamamen kapıyı açan güvenlik kilidi
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 api_key = os.getenv("OPENAI_API_KEY") 
 client = OpenAI(api_key=api_key)
