@@ -1,28 +1,30 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI
+from pydantic import BaseModel
 from openai import OpenAI
-import base64
 import os
 from dotenv import load_dotenv
-
 
 load_dotenv()
 
 app = FastAPI()
 
-
 api_key = os.getenv("OPENAI_API_KEY") 
 client = OpenAI(api_key=api_key)
 
+# 1. Flutter'dan gelen JSON verisini karşılayacak modeli tanımlıyoruz
+class ImageRequest(BaseModel):
+    image: str
+
 @app.get("/")
 def home():
-    return {"message": "NeBu API Çalışıyor!"}
+    return {"message": "API Çalışıyor!"}
 
-@app.post("/analyze")
-async def analyze_image(file: UploadFile = File(...)):
-   
-    image_data = await file.read()
-    base64_image = base64.b64encode(image_data).decode('utf-8')
-
+# 2. Adını Flutter ile aynı yaptık (/solve) ve JSON formatını kabul etmesini sağladık
+@app.post("/solve")
+async def solve_math_problem(request: ImageRequest):
+    
+    # Flutter zaten fotoğrafı Base64'e çevirip gönderdiği için direkt alıyoruz
+    base64_image = request.image
    
     try:
         response = client.chat.completions.create(
@@ -54,5 +56,3 @@ async def analyze_image(file: UploadFile = File(...)):
     
     except Exception as e:
         return {"error": str(e)}
-
-# Çalıştırmak için terminale: uvicorn main:app --reload
